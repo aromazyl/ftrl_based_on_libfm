@@ -211,17 +211,11 @@ int main(int argc, char **argv) {
     // (2.1) load the FM model
     if (cmdline.hasParameter(param_load_model)) {
       std::cout << "Reading FM model... \t" << std::endl;
-      if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-        if(!fm.loadModel(cmdline.getValue(param_load_model))){
-          std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
-          fm.init();
-        }
-      }
-      else{
-        std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be loaded." << std::endl;
+      if(!fm.loadModel(cmdline.getValue(param_load_model))) {
+        std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
+        fm.init();
       }
     }
-
     // (3) Setup the learning method:
     fm_learn* fml;
     if (! cmdline.getValue(param_method).compare("sgd")) {
@@ -281,6 +275,12 @@ int main(int argc, char **argv) {
 
     fml->log = rlog;
     fml->init();
+
+    if (cmdline.hasParameter(param_load_model)) {
+      if (! cmdline.getValue(param_method).compare("ftrl")) {
+        ((fm_learn_ftrl*)fml)->ftrl->Load("./");
+      }
+    }
     if (! cmdline.getValue(param_method).compare("mcmc")) {
       // set the regularization; for als and mcmc this can be individual per group
       { 
@@ -389,11 +389,10 @@ int main(int argc, char **argv) {
     // () save the FM model
     if (cmdline.hasParameter(param_save_model)) {
       std::cout << "Writing FM model... \t" << std::endl;
-      if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-        fm.saveModel(cmdline.getValue(param_save_model));
-      }
-      else{
-        std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
+      fm.saveModel(cmdline.getValue(param_save_model));
+      fm.saveByIndex(cmdline.getValue(param_save_model + "_factor"));
+      if (!cmdline.getValue(param_method).compare("ftrl")) {
+        ((fm_learn_ftrl*)fml)->ftrl->Dump("./");
       }
     }
 

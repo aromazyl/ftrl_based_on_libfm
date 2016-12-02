@@ -61,6 +61,7 @@ class fm_model {
 		double predict(const sparse_row<FM_FLOAT>& x);
 		double predict(const sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<double> &sum_sqr) const;
 		void saveModel(std::string model_file_path);
+    void saveByIndex(const std::string& savepath);
 		int loadModel(std::string model_file_path);
 	protected:
 		void splitString(const std::string& s, char c, std::vector<std::string>& v);
@@ -154,6 +155,22 @@ void fm_model::saveModel(std::string model_file_path){
 		out_model << std::endl;
 	}
 	out_model.close();
+}
+void fm_model::saveByIndex(const std::string& savepath) {
+  std::ofstream out_model(savepath.c_str());
+  if (!out_model.is_open()) {
+    fprintf(stderr, "%s open failure.\n", savepath.c_str());
+    exit(1);
+  }
+  for (uint i = 0; i<num_attribute; i++){
+    out_model << i << "\t";
+    for (int f = 0; f < num_factor; f++) {
+      out_model << v(f,i);
+      if (f!=num_factor-1) { out_model << ','; }
+    }
+    out_model << std::endl;
+  }
+  out_model.close();
 }
 
 /*
